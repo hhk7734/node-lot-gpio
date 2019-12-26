@@ -1,0 +1,34 @@
+{
+    "name": "lot-gpio",
+    "version": "0.0.1",
+    "description": "GPIO development library",
+    "keywords": [
+        "gpio",
+        "lot"
+    ],
+    "main": "lot-gpio.js",
+    "gypfile": true,
+    "scripts": {
+        "install": "node-gyp rebuild",
+        "build": "node-gyp rebuild",
+        "clean": "node-gyp clean",
+        "cf": "clang-format -style=file -i -verbose src/*"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/loliot/node-lot-gpio.git"
+    },
+    "author": {
+        "name": "Hyeonki Hong",
+        "email": "hhk7734@gmail.com"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/loliot/node-lot-gpio/issues"
+    },
+    "homepage": "https://github.com/loliot/node-lot-gpio",
+    "dependencies": {
+        "node-addon-api": "~2.0.0",
+        "node-gyp": "~5.0.7"
+    }
+}
