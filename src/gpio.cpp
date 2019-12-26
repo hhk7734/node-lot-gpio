@@ -1,6 +1,8 @@
 #include "gpio.h"
+#include "def.h"
 
 #include <lot/lot.h>
+#include <string>
 
 Napi::Object gpio::init( Napi::Env env, Napi::Object exports )
 {
@@ -27,6 +29,33 @@ Napi::Object gpio::init( Napi::Env env, Napi::Object exports )
 void gpio::set_pin_mode( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
+
+    if( info.Length() == 2 && info[0].IsNumber() && info[1].IsString() )
+    {
+        Napi::Number pin  = info[0].As<Napi::Number>();
+        std::string  mode = info[1].ToString();
+
+        for( int i = 0; i < 10; ++i )
+        {
+            if( mode.compare( def::PIN_MODE[i] ) == 0 )
+            {
+                if( i < 2 )
+                {
+                    lot::set_pin_mode( pin.Int32Value(), i );
+                    return;
+                }
+                else
+                {
+                    lot::set_pin_mode( pin.Int32Value(), i + 98 );
+                    return;
+                }
+            }
+        }
+    }
+
+    Napi::TypeError::New(
+        env, "Arguments must be (pin, mode) such as (10, \"OUTPUT\")" )
+        .ThrowAsJavaScriptException();
 }
 
 Napi::String gpio::get_pin_mode( const Napi::CallbackInfo &info )
