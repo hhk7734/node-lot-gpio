@@ -98,6 +98,26 @@ Napi::Number gpio::get_pin_drive( const Napi::CallbackInfo &info )
 void gpio::digital_write( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
+
+    if( info.Length() == 2 && info[0].IsNumber() && info[1].IsString() )
+    {
+        Napi::Number pin    = info[0].As<Napi::Number>();
+        std::string  status = info[1].ToString();
+
+        for( int i = 0; i < 2; ++i )
+        {
+            if( status.compare( def::PIN_STATUS[i] ) == 0 )
+            {
+                lot::digital_write( pin.Int32Value(),
+                                    static_cast<lot::pin_status_t>( i ) );
+                return;
+            }
+        }
+    }
+
+    Napi::TypeError::New(
+        env, "Arguments must be (pin, status) such as (13, \"HIGH\")." )
+        .ThrowAsJavaScriptException();
 }
 
 Napi::String gpio::digital_read( const Napi::CallbackInfo &info )
