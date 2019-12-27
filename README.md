@@ -12,7 +12,18 @@ sudo lot install
 ```
 
 ```bash
-npm install -g lot-gpio
+curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - &&\
+sudo apt-get install -y nodejs
+```
+
+```bash
+mkdir project &&\
+cd project &&\
+npm init -y
+```
+
+```bash
+npm install lot-gpio
 ```
 
 ## Blink example
