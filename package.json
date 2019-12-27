@@ -10,7 +10,7 @@
     "gypfile": true,
     "scripts": {
         "install": "node-gyp rebuild",
-        "build": "node-gyp rebuild",
+        "build": "node-gyp rebuild --verbose",
         "clean": "node-gyp clean",
         "cf": "clang-format -style=file -i -verbose src/*"
     },

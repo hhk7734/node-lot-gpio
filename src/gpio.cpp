@@ -41,12 +41,14 @@ void gpio::set_pin_mode( const Napi::CallbackInfo &info )
             {
                 if( i < 2 )
                 {
-                    lot::set_pin_mode( pin.Int32Value(), i );
+                    lot::set_pin_mode( pin.Int32Value(),
+                                       static_cast<lot::pin_mode_t>( i ) );
                     return;
                 }
                 else
                 {
-                    lot::set_pin_mode( pin.Int32Value(), i + 98 );
+                    lot::set_pin_mode( pin.Int32Value(),
+                                       static_cast<lot::pin_mode_t>( i + 98 ) );
                     return;
                 }
             }
@@ -54,7 +56,7 @@ void gpio::set_pin_mode( const Napi::CallbackInfo &info )
     }
 
     Napi::TypeError::New(
-        env, "Arguments must be (pin, mode) such as (10, \"OUTPUT\")" )
+        env, "Arguments must be (pin, mode) such as (13, \"OUTPUT\")." )
         .ThrowAsJavaScriptException();
 }
 
