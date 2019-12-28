@@ -4,6 +4,7 @@
     "description": "GPIO development library",
     "keywords": [
         "gpio",
+        "iot",
         "lot"
     ],
     "main": "lot-gpio.js",
