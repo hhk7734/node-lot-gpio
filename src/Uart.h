@@ -21,15 +21,22 @@
  * SOFTWARE.
  */
 
+#pragma once
+
 #include <napi.h>
+#include <lot/Uart.h>
 
-#include "gpio.h"
-#include "Uart.h"
-
-Napi::Object init_all( Napi::Env env, Napi::Object exports )
+namespace lotgpio
 {
-    lotgpio::init( env, exports );
-    return lotgpio::Uart::init( env, exports );
-}
+class Uart : public Napi::ObjectWrap<Uart>
+{
+public:
+    static Napi::Object init( Napi::Env env, Napi::Object exports );
 
-NODE_API_MODULE( NODE_GYP_MODULE_NAME, init_all )
+    Uart( const Napi::CallbackInfo &info );
+
+private:
+    static Napi::FunctionReference m_constructor;
+    lot::Uart *                    m_uart;
+};
+}    // namespace lotgpio

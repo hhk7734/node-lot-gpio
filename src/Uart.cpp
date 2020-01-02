@@ -21,15 +21,26 @@
  * SOFTWARE.
  */
 
-#include <napi.h>
-
-#include "gpio.h"
 #include "Uart.h"
 
-Napi::Object init_all( Napi::Env env, Napi::Object exports )
+Napi::FunctionReference lotgpio::Uart::m_constructor;
+
+Napi::Object lotgpio::Uart::init( Napi::Env env, Napi::Object exports )
 {
-    lotgpio::init( env, exports );
-    return lotgpio::Uart::init( env, exports );
+    Napi::HandleScope scope( env );
+
+    Napi::Function func = DefineClass( env, "Uart", {} );
+
+    m_constructor = Napi::Persistent( func );
+    m_constructor.SuppressDestruct();
+
+    exports.Set( "Uart", func );
+    return exports;
 }
 
-NODE_API_MODULE( NODE_GYP_MODULE_NAME, init_all )
+lotgpio::Uart::Uart( const Napi::CallbackInfo &info )
+    : Napi::ObjectWrap<Uart>( info )
+{
+    Napi::Env         env = info.Env();
+    Napi::HandleScope scope( env );
+}
