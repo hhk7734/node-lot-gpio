@@ -1,11 +1,12 @@
 {
     "name": "lot-gpio",
-    "version": "0.0.4",
+    "version": "0.1.0",
     "description": "GPIO development library",
     "keywords": [
         "gpio",
         "iot",
-        "lot"
+        "lot",
+        "sbc"
     ],
     "main": "lot-gpio.js",
     "gypfile": true,
@@ -29,7 +30,7 @@
     },
     "homepage": "https://github.com/loliot/node-lot-gpio",
     "dependencies": {
-        "node-addon-api": "~2.0.0",
+        "node-addon-api": "^2.0.0",
         "node-gyp": "~5.0.7"
     }
 }
