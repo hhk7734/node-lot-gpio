@@ -17,10 +17,11 @@ for (let i = 1; i <= max_pin; ++i) {
     let msg = pad(i, 3) + ": ";
     if (lot.get_lot_pin_available(i) != "UNUSED") {
         msg += pad(lot.get_pin_mode(i), 4, " ");
-        // msg+= " " + lot.get_pin_drive( i );
+        msg += " " + lot.get_pin_drive( i );
     } else {
-        msg += "    ";
+        msg += "      ";
     }
+
     if (i % 2 == 1) {
         msg += "\t";
     } else {
