@@ -33,7 +33,7 @@ const lot = require("lot-gpio");
 
 const LED_PIN = 7;
 
-lot.set_pin_mode(LED_PIN, "OUTPUT");
+lot.set_pin_mode(LED_PIN, "OUT");
 
 let status = "HIGH";
 
