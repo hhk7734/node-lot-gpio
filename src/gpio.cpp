@@ -28,7 +28,7 @@
 #include <string>
 #include <iostream>
 
-Napi::Object gpio::init( Napi::Env env, Napi::Object exports )
+Napi::Object lotgpio::init( Napi::Env env, Napi::Object exports )
 {
     lot::init();
 
@@ -52,7 +52,7 @@ Napi::Object gpio::init( Napi::Env env, Napi::Object exports )
     return exports;
 }
 
-Napi::Value gpio::get_lot_pin_available( const Napi::CallbackInfo &info )
+Napi::Value lotgpio::get_lot_pin_available( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 
@@ -83,7 +83,7 @@ Napi::Value gpio::get_lot_pin_available( const Napi::CallbackInfo &info )
     }
 }
 
-void gpio::set_pin_mode( const Napi::CallbackInfo &info )
+void lotgpio::set_pin_mode( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 
@@ -100,7 +100,7 @@ void gpio::set_pin_mode( const Napi::CallbackInfo &info )
     try
     {
         lot::set_pin_mode(
-            pin, static_cast<lot::pin_mode_t>( def::mode_str_to_num[mode] ) );
+            pin, static_cast<lot::pin_mode_t>( mode_str_to_num[mode] ) );
     }
     catch( const std::exception &e )
     {
@@ -108,7 +108,7 @@ void gpio::set_pin_mode( const Napi::CallbackInfo &info )
     }
 }
 
-Napi::String gpio::get_pin_mode( const Napi::CallbackInfo &info )
+Napi::String lotgpio::get_pin_mode( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 
@@ -122,7 +122,7 @@ Napi::String gpio::get_pin_mode( const Napi::CallbackInfo &info )
 
     try
     {
-        std::string retval = def::mode_num_to_str[lot::get_pin_mode( pin )];
+        std::string retval = mode_num_to_str[lot::get_pin_mode( pin )];
         return Napi::String::New( env, retval );
     }
     catch( const std::exception &e )
@@ -132,7 +132,7 @@ Napi::String gpio::get_pin_mode( const Napi::CallbackInfo &info )
     }
 }
 
-void gpio::set_pin_pull_up_down( const Napi::CallbackInfo &info )
+void lotgpio::set_pin_pull_up_down( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 
@@ -149,7 +149,7 @@ void gpio::set_pin_pull_up_down( const Napi::CallbackInfo &info )
     try
     {
         lot::set_pin_pull_up_down(
-            pin, static_cast<lot::pud_mode_t>( def::pud_str_to_num[pud] ) );
+            pin, static_cast<lot::pud_mode_t>( pud_str_to_num[pud] ) );
     }
     catch( const std::exception &e )
     {
@@ -157,7 +157,7 @@ void gpio::set_pin_pull_up_down( const Napi::CallbackInfo &info )
     }
 }
 
-Napi::String gpio::get_pin_pull_up_down( const Napi::CallbackInfo &info )
+Napi::String lotgpio::get_pin_pull_up_down( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 
@@ -171,8 +171,7 @@ Napi::String gpio::get_pin_pull_up_down( const Napi::CallbackInfo &info )
 
     try
     {
-        std::string retval
-            = def::mode_num_to_str[lot::get_pin_pull_up_down( pin )];
+        std::string retval = mode_num_to_str[lot::get_pin_pull_up_down( pin )];
         return Napi::String::New( env, retval );
     }
     catch( const std::exception &e )
@@ -182,7 +181,7 @@ Napi::String gpio::get_pin_pull_up_down( const Napi::CallbackInfo &info )
     }
 }
 
-void gpio::set_pin_speed( const Napi::CallbackInfo &info )
+void lotgpio::set_pin_speed( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 
@@ -206,7 +205,7 @@ void gpio::set_pin_speed( const Napi::CallbackInfo &info )
     }
 }
 
-Napi::Number gpio::get_pin_speed( const Napi::CallbackInfo &info )
+Napi::Number lotgpio::get_pin_speed( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 
@@ -229,7 +228,7 @@ Napi::Number gpio::get_pin_speed( const Napi::CallbackInfo &info )
     }
 }
 
-void gpio::set_pin_drive( const Napi::CallbackInfo &info )
+void lotgpio::set_pin_drive( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 
@@ -253,7 +252,7 @@ void gpio::set_pin_drive( const Napi::CallbackInfo &info )
     }
 }
 
-Napi::Number gpio::get_pin_drive( const Napi::CallbackInfo &info )
+Napi::Number lotgpio::get_pin_drive( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 
@@ -276,7 +275,7 @@ Napi::Number gpio::get_pin_drive( const Napi::CallbackInfo &info )
     }
 }
 
-void gpio::digital_write( const Napi::CallbackInfo &info )
+void lotgpio::digital_write( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 
@@ -293,8 +292,7 @@ void gpio::digital_write( const Napi::CallbackInfo &info )
     try
     {
         lot::digital_write(
-            pin,
-            static_cast<lot::pin_status_t>( def::status_str_to_num[status] ) );
+            pin, static_cast<lot::pin_status_t>( status_str_to_num[status] ) );
     }
     catch( const std::exception &e )
     {
@@ -302,7 +300,7 @@ void gpio::digital_write( const Napi::CallbackInfo &info )
     }
 }
 
-Napi::String gpio::digital_read( const Napi::CallbackInfo &info )
+Napi::String lotgpio::digital_read( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 
@@ -316,8 +314,8 @@ Napi::String gpio::digital_read( const Napi::CallbackInfo &info )
 
     try
     {
-        std::string retval = def::status_num_to_str[static_cast<int>(
-            lot::digital_read( pin ) )];
+        std::string retval
+            = status_num_to_str[static_cast<int>( lot::digital_read( pin ) )];
         return Napi::String::New( env, retval );
     }
     catch( const std::exception &e )
@@ -327,7 +325,7 @@ Napi::String gpio::digital_read( const Napi::CallbackInfo &info )
     }
 }
 
-void gpio::analog_write( const Napi::CallbackInfo &info )
+void lotgpio::analog_write( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 
@@ -351,7 +349,7 @@ void gpio::analog_write( const Napi::CallbackInfo &info )
     }
 }
 
-Napi::Number gpio::analog_read( const Napi::CallbackInfo &info )
+Napi::Number lotgpio::analog_read( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 

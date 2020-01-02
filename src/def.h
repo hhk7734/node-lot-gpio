@@ -26,7 +26,7 @@
 #include <map>
 #include <string>
 
-namespace def
+namespace lotgpio
 {
 std::map<std::string, int> mode_str_to_num = {
     { "IN", 0 },   { "OUT", 1 },  { "ALT0", 2 }, { "ALT1", 3 }, { "ALT2", 4 },
@@ -46,4 +46,4 @@ const std::string          status_num_to_str[] = { "LOW", "HIGH" };
 std::map<std::string, int> bit_order_str_to_num
     = { { "LSB_FIRST", 0 }, { "MSB_FIRST", 1 } };
 const std::string bit_order_num_to_str = { "LSB_FIRST", "MSB_FIRST" };
-}    // namespace def
+}    // namespace lotgpio

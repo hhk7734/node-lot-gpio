@@ -25,7 +25,7 @@
 
 #include <napi.h>
 
-namespace gpio
+namespace lotgpio
 {
 Napi::Object init( Napi::Env env, Napi::Object exports );
 Napi::Value  get_lot_pin_available( const Napi::CallbackInfo &info );
@@ -41,4 +41,4 @@ void         digital_write( const Napi::CallbackInfo &info );
 Napi::String digital_read( const Napi::CallbackInfo &info );
 void         analog_write( const Napi::CallbackInfo &info );
 Napi::Number analog_read( const Napi::CallbackInfo &info );
-}    // namespace gpio
+}    // namespace lotgpio
