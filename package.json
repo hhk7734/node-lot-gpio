@@ -1,12 +1,16 @@
 {
     "name": "lot-gpio",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "GPIO development library",
     "keywords": [
         "gpio",
         "iot",
         "lot",
-        "sbc"
+        "sbc",
+        "uart",
+        "spi",
+        "i2c",
+        "serial"
     ],
     "main": "lot-gpio.js",
     "gypfile": true,
