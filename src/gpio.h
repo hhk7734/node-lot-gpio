@@ -28,6 +28,7 @@
 namespace gpio
 {
 Napi::Object init( Napi::Env env, Napi::Object exports );
+Napi::Value  get_lot_pin_available( const Napi::CallbackInfo &info );
 void         set_pin_mode( const Napi::CallbackInfo &info );
 Napi::String get_pin_mode( const Napi::CallbackInfo &info );
 void         set_pin_pull_up_down( const Napi::CallbackInfo &info );

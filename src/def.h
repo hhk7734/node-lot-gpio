@@ -23,13 +23,18 @@
 
 #pragma once
 
+#include <map>
 #include <string>
 
 namespace def
 {
-const std::string PIN_MODE[]
-    = { "INPUT",     "OUTPUT",    "ALT_FUNC0", "ALT_FUNC1", "ALT_FUNC2",
-        "ALT_FUNC3", "ALT_FUNC4", "ALT_FUNC5", "ALT_FUNC6", "ALT_FUNC7" };
+std::map<std::string, int> mode_str_to_num = {
+    { "IN", 0 },   { "OUT", 1 },  { "ALT0", 2 }, { "ALT1", 3 }, { "ALT2", 4 },
+    { "ALT3", 5 }, { "ALT4", 6 }, { "ALT5", 7 }, { "ALT6", 8 }, { "ALT7", 9 },
+};
+std::string mode_num_to_str[] = { "IN",   "OUT",  "ALT0", "ALT1", "ALT2",
+                                  "ALT3", "ALT4", "ALT5", "ALT6", "ALT7" };
 
-const std::string PIN_STATUS[] = { "LOW", "HIGH" };
+std::map<std::string, int> status_str_to_num = { { "LOW", 0 }, { "HIGH", 1 } };
+std::string                status_num_to_str[] = { "LOW", "HIGH" };
 }    // namespace def
