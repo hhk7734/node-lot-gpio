@@ -11,7 +11,8 @@
             "defines": ["NAPI_DISABLE_CPP_EXCEPTIONS"],
             "sources": [
                 "src/main.cpp",
-                "src/gpio.cpp"
+                "src/gpio.cpp",
+                "src/Uart.cpp"
             ],
             "libraries": [
                 "/usr/lib/liblot.so"
