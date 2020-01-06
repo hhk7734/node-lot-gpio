@@ -1,5 +1,6 @@
 /*
  * MIT License
+ * 
  * Copyright (c) 2019-2020 Hyeonki Hong <hhk7734@gmail.com>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,352 +23,345 @@
  */
 
 #include "gpio.h"
-#include "def.h"
 
-#include <lot/lot.h>
-#include <string>
 #include <iostream>
+#include <stdexcept>
 
-Napi::Object lotgpio::init( Napi::Env env, Napi::Object exports )
+/*
+ * lot/lot-API/lot_time.h
+ */
+Napi::Object nodelot::init_funcs( Napi::Env env, Napi::Object exports )
 {
-    lot::init();
-
-    exports.Set( "get_lot_pin_available",
-                 Napi::Function::New( env, get_lot_pin_available ) );
-    exports.Set( "set_pin_mode", Napi::Function::New( env, set_pin_mode ) );
-    exports.Set( "get_pin_mode", Napi::Function::New( env, get_pin_mode ) );
-    exports.Set( "set_pin_pull_up_down",
-                 Napi::Function::New( env, set_pin_pull_up_down ) );
-    exports.Set( "get_pin_pull_up_down",
-                 Napi::Function::New( env, get_pin_pull_up_down ) );
-    exports.Set( "set_pin_speed", Napi::Function::New( env, set_pin_speed ) );
-    exports.Set( "get_pin_speed", Napi::Function::New( env, get_pin_speed ) );
-    exports.Set( "set_pin_drive", Napi::Function::New( env, set_pin_drive ) );
-    exports.Set( "get_pin_drive", Napi::Function::New( env, get_pin_drive ) );
-    exports.Set( "digital_write", Napi::Function::New( env, digital_write ) );
-    exports.Set( "digital_read", Napi::Function::New( env, digital_read ) );
-    exports.Set( "analog_write", Napi::Function::New( env, analog_write ) );
-    exports.Set( "analog_read", Napi::Function::New( env, analog_read ) );
+    exports.Set( "init_time", Napi::Function::New( env, init_time ) );
+    exports.Set( "delay_us", Napi::Function::New( env, delay_us ) );
+    exports.Set( "delay_ms", Napi::Function::New( env, delay_ms ) );
+    exports.Set( "micros", Napi::Function::New( env, micros ) );
+    exports.Set( "millis", Napi::Function::New( env, millis ) );
 
     return exports;
 }
 
-Napi::Value lotgpio::get_lot_pin_available( const Napi::CallbackInfo &info )
+void nodelot::init_time( const Napi::CallbackInfo &info )
+{
+    lot::init_time();
+}
+
+void nodelot::delay_us( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 
     if( info.Length() < 1 || !info[0].IsNumber() )
     {
-        Napi::TypeError::New( env, "Arguments must be (pin) such as (13)." )
+        Napi::TypeError::New( env, "Arguments must be (micros) such as (100)." )
             .ThrowAsJavaScriptException();
     }
 
-    lot::pin_size_t pin = static_cast<int>( info[0].As<Napi::Number>() );
+    int us = info[0].As<Napi::Number>();
 
-    try
+    lot::delay_us( us );
+}
+
+void nodelot::delay_ms( const Napi::CallbackInfo &info )
+{
+    Napi::Env env = info.Env();
+
+    if( info.Length() < 1 || !info[0].IsNumber() )
     {
-        lot::pin_size_t retval = lot::get_lot_pin_available( pin );
-        if( retval != UNUSED )
+        Napi::TypeError::New( env, "Arguments must be (millis) such as (100)." )
+            .ThrowAsJavaScriptException();
+    }
+
+    int ms = info[0].As<Napi::Number>();
+
+    lot::delay_us( ms );
+}
+
+Napi::Number nodelot::micros( const Napi::CallbackInfo &info )
+{
+    Napi::Env env = info.Env();
+
+    return Napi::Number::New( env, lot::micros() );
+}
+
+Napi::Number nodelot::millis( const Napi::CallbackInfo &info )
+{
+    Napi::Env env = info.Env();
+
+    return Napi::Number::New( env, lot::millis() );
+}
+
+/*
+ * lot/Gpio.h
+ */
+Napi::FunctionReference nodelot::Gpio::m_constructor;
+
+Napi::Object nodelot::Gpio::init( Napi::Env env, Napi::Object exports )
+{
+    Napi::HandleScope scope( env );
+
+    Napi::Function funcs = DefineClass(
+        env,
+        "Gpio",
         {
-            return Napi::Number::New( env, static_cast<int>( retval ) );
-        }
-        else
+            InstanceMethod( "mode", &nodelot::Gpio::mode ),
+            InstanceMethod( "pull_up_down", &nodelot::Gpio::pull_up_down ),
+            InstanceMethod( "drive", &nodelot::Gpio::drive ),
+            InstanceMethod( "digital", &nodelot::Gpio::digital ),
+            InstanceMethod( "on", &nodelot::Gpio::on ),
+            InstanceMethod( "off", &nodelot::Gpio::off ),
+            InstanceMethod( "toggle", &nodelot::Gpio::toggle ),
+            InstanceMethod( "analog", &nodelot::Gpio::analog ),
+        } );
+
+    m_constructor = Napi::Persistent( funcs );
+    m_constructor.SuppressDestruct();
+
+    exports.Set( "Gpio", funcs );
+    return exports;
+}
+
+nodelot::Gpio::Gpio( const Napi::CallbackInfo &info )
+    : Napi::ObjectWrap<Gpio>( info )
+{
+    Napi::Env         env = info.Env();
+    Napi::HandleScope scope( env );
+
+    if( info.Length() < 1 || !info[0].IsNumber() )
+    {
+        Napi::TypeError::New( env, "Arguments must be (pin) such as (13)." )
+            .ThrowAsJavaScriptException();
+    }
+
+    int pin = info[0].As<Napi::Number>();
+
+    try
+    {
+        m_gpio = new lot::Gpio( pin );
+    }
+    catch( const std::exception &e )
+    {
+        Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
+    }
+}
+
+Napi::Number nodelot::Gpio::mode( const Napi::CallbackInfo &info )
+{
+    Napi::Env env = info.Env();
+
+    if( info.Length() == 0 )
+    {
+        try
         {
-            return Napi::String::New( env, "UNUSED" );
+            return Napi::Number::New( env, static_cast<int>( m_gpio->mode() ) );
+        }
+        catch( const std::exception &e )
+        {
+            Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
         }
     }
+
+    if( !info[0].IsNumber() )
+    {
+        Napi::TypeError::New( env,
+                              "Arguments should be (mode) such as (lot.DOUT)." )
+            .ThrowAsJavaScriptException();
+    }
+
+    int mode = info[0].As<Napi::Number>();
+
+    try
+    {
+        m_gpio->mode( static_cast<lot::pin_mode_t>( mode ) );
+    }
     catch( const std::exception &e )
     {
-        Napi::TypeError::New( env, e.what() ).ThrowAsJavaScriptException();
-        return Napi::Value( env, 0 );
+        Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
     }
+    return Napi::Number::New( env, -1 );
 }
 
-void lotgpio::set_pin_mode( const Napi::CallbackInfo &info )
+Napi::Number nodelot::Gpio::pull_up_down( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 
-    if( info.Length() < 2 || !info[0].IsNumber() || !info[1].IsString() )
+    if( info.Length() == 0 )
+    {
+        try
+        {
+            return Napi::Number::New(
+                env, static_cast<int>( m_gpio->pull_up_down() ) );
+        }
+        catch( const std::exception &e )
+        {
+            Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
+        }
+    }
+
+    if( !info[0].IsNumber() )
     {
         Napi::TypeError::New(
-            env, "Arguments must be (pin, mode) such as (13, \"OUT\")." )
+            env, "Arguments should be (pud) such as (lot.PULL_UP)." )
             .ThrowAsJavaScriptException();
     }
 
-    lot::pin_size_t pin  = static_cast<int>( info[0].As<Napi::Number>() );
-    std::string     mode = info[1].As<Napi::String>();
+    int pud = info[0].As<Napi::Number>();
 
     try
     {
-        lot::set_pin_mode(
-            pin, static_cast<lot::pin_mode_t>( mode_str_to_num[mode] ) );
+        m_gpio->pull_up_down( static_cast<lot::pud_mode_t>( pud ) );
     }
     catch( const std::exception &e )
     {
-        Napi::TypeError::New( env, e.what() ).ThrowAsJavaScriptException();
+        Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
     }
+    return Napi::Number::New( env, -1 );
 }
 
-Napi::String lotgpio::get_pin_mode( const Napi::CallbackInfo &info )
+Napi::Number nodelot::Gpio::drive( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 
-    if( info.Length() < 1 || !info[0].IsNumber() )
+    if( info.Length() == 0 )
     {
-        Napi::TypeError::New( env, "Arguments must be (pin) such as (13)." )
+        try
+        {
+            return Napi::Number::New( env, m_gpio->drive() );
+        }
+        catch( const std::exception &e )
+        {
+            Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
+        }
+    }
+
+    if( !info[0].IsNumber() )
+    {
+        Napi::TypeError::New( env, "Arguments should be (drive)." )
             .ThrowAsJavaScriptException();
     }
 
-    lot::pin_size_t pin = static_cast<int>( info[0].As<Napi::Number>() );
+    uint32_t drive = info[0].As<Napi::Number>();
 
     try
     {
-        std::string retval = mode_num_to_str[lot::get_pin_mode( pin )];
-        return Napi::String::New( env, retval );
+        m_gpio->drive( drive );
     }
     catch( const std::exception &e )
     {
-        Napi::TypeError::New( env, e.what() ).ThrowAsJavaScriptException();
-        return Napi::String( env, nullptr );
+        Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
     }
+    return Napi::Number::New( env, -1 );
 }
 
-void lotgpio::set_pin_pull_up_down( const Napi::CallbackInfo &info )
+Napi::Number nodelot::Gpio::digital( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 
-    if( info.Length() < 2 || !info[0].IsNumber() || !info[1].IsString() )
+    if( info.Length() == 0 )
+    {
+        try
+        {
+            return Napi::Number::New( env, m_gpio->digital() );
+        }
+        catch( const std::exception &e )
+        {
+            Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
+        }
+    }
+
+    if( !info[0].IsNumber() )
     {
         Napi::TypeError::New(
-            env, "Arguments must be (pin, pud) such as (13, \"PULL_UP\")." )
+            env, "Arguments should be (status) such as (lot.HIGH)." )
             .ThrowAsJavaScriptException();
     }
 
-    lot::pin_size_t pin = static_cast<int>( info[0].As<Napi::Number>() );
-    std::string     pud = info[1].As<Napi::String>();
+    int status = info[0].As<Napi::Number>();
 
     try
     {
-        lot::set_pin_pull_up_down(
-            pin, static_cast<lot::pud_mode_t>( pud_str_to_num[pud] ) );
+        m_gpio->digital( status );
     }
     catch( const std::exception &e )
     {
-        Napi::TypeError::New( env, e.what() ).ThrowAsJavaScriptException();
+        Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
     }
+    return Napi::Number::New( env, -1 );
 }
 
-Napi::String lotgpio::get_pin_pull_up_down( const Napi::CallbackInfo &info )
+void nodelot::Gpio::on( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 
-    if( info.Length() < 1 || !info[0].IsNumber() )
-    {
-        Napi::TypeError::New( env, "Arguments must be (pin) such as (13)." )
-            .ThrowAsJavaScriptException();
-    }
-
-    lot::pin_size_t pin = static_cast<int>( info[0].As<Napi::Number>() );
-
     try
     {
-        std::string retval = mode_num_to_str[lot::get_pin_pull_up_down( pin )];
-        return Napi::String::New( env, retval );
+        m_gpio->on();
     }
     catch( const std::exception &e )
     {
-        Napi::TypeError::New( env, e.what() ).ThrowAsJavaScriptException();
-        return Napi::String( env, nullptr );
+        Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
     }
 }
 
-void lotgpio::set_pin_speed( const Napi::CallbackInfo &info )
+void nodelot::Gpio::off( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 
-    if( info.Length() < 2 || !info[0].IsNumber() || !info[1].IsNumber() )
-    {
-        Napi::TypeError::New(
-            env, "Arguments must be (pin, speed) such as (13, speed)." )
-            .ThrowAsJavaScriptException();
-    }
-
-    lot::pin_size_t pin   = static_cast<int>( info[0].As<Napi::Number>() );
-    uint32_t        speed = info[1].As<Napi::Number>();
-
     try
     {
-        lot::set_pin_speed( pin, speed );
+        m_gpio->off();
     }
     catch( const std::exception &e )
     {
-        Napi::TypeError::New( env, e.what() ).ThrowAsJavaScriptException();
+        Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
     }
 }
 
-Napi::Number lotgpio::get_pin_speed( const Napi::CallbackInfo &info )
+Napi::Number nodelot::Gpio::toggle( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 
-    if( info.Length() < 1 || !info[0].IsNumber() )
-    {
-        Napi::TypeError::New( env, "Arguments must be (pin) such as (13)." )
-            .ThrowAsJavaScriptException();
-    }
-
-    lot::pin_size_t pin = static_cast<int>( info[0].As<Napi::Number>() );
-
     try
     {
-        return Napi::Number::New( env, lot::get_pin_speed( pin ) );
+        return Napi::Number::New( env, m_gpio->toggle() );
     }
     catch( const std::exception &e )
     {
-        Napi::TypeError::New( env, e.what() ).ThrowAsJavaScriptException();
-        return Napi::Number::New( env, 0 );
+        Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
     }
+    return Napi::Number::New( env, -1 );
 }
 
-void lotgpio::set_pin_drive( const Napi::CallbackInfo &info )
+Napi::Number nodelot::Gpio::analog( const Napi::CallbackInfo &info )
 {
     Napi::Env env = info.Env();
 
-    if( info.Length() < 2 || !info[0].IsNumber() || !info[1].IsNumber() )
+    if( info.Length() == 0 )
     {
-        Napi::TypeError::New(
-            env, "Arguments must be (pin, drive) such as (13, drive)." )
+        try
+        {
+            return Napi::Number::New( env, m_gpio->analog() );
+        }
+        catch( const std::exception &e )
+        {
+            Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
+        }
+    }
+
+    if( !info[0].IsNumber() )
+    {
+        Napi::TypeError::New( env, "Arguments must be (value)." )
             .ThrowAsJavaScriptException();
     }
 
-    lot::pin_size_t pin   = static_cast<int>( info[0].As<Napi::Number>() );
-    uint32_t        drive = info[1].As<Napi::Number>();
+    int value = info[0].As<Napi::Number>();
 
     try
     {
-        lot::set_pin_drive( pin, drive );
+        m_gpio->analog( value );
     }
     catch( const std::exception &e )
     {
-        Napi::TypeError::New( env, e.what() ).ThrowAsJavaScriptException();
+        Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
     }
-}
-
-Napi::Number lotgpio::get_pin_drive( const Napi::CallbackInfo &info )
-{
-    Napi::Env env = info.Env();
-
-    if( info.Length() < 1 || !info[0].IsNumber() )
-    {
-        Napi::TypeError::New( env, "Arguments must be (pin) such as (13)." )
-            .ThrowAsJavaScriptException();
-    }
-
-    lot::pin_size_t pin = static_cast<int>( info[0].As<Napi::Number>() );
-
-    try
-    {
-        return Napi::Number::New( env, lot::get_pin_drive( pin ) );
-    }
-    catch( const std::exception &e )
-    {
-        Napi::TypeError::New( env, e.what() ).ThrowAsJavaScriptException();
-        return Napi::Number::New( env, 0 );
-    }
-}
-
-void lotgpio::digital_write( const Napi::CallbackInfo &info )
-{
-    Napi::Env env = info.Env();
-
-    if( info.Length() < 2 || !info[0].IsNumber() || !info[1].IsString() )
-    {
-        Napi::TypeError::New(
-            env, "Arguments must be (pin, status) such as (13, \"HIGH\")." )
-            .ThrowAsJavaScriptException();
-    }
-
-    lot::pin_size_t pin    = static_cast<int>( info[0].As<Napi::Number>() );
-    std::string     status = info[1].As<Napi::String>();
-
-    try
-    {
-        lot::digital_write(
-            pin, static_cast<lot::pin_status_t>( status_str_to_num[status] ) );
-    }
-    catch( const std::exception &e )
-    {
-        Napi::TypeError::New( env, e.what() ).ThrowAsJavaScriptException();
-    }
-}
-
-Napi::String lotgpio::digital_read( const Napi::CallbackInfo &info )
-{
-    Napi::Env env = info.Env();
-
-    if( info.Length() < 1 || !info[0].IsNumber() )
-    {
-        Napi::TypeError::New( env, "Arguments must be (pin) such as (13)." )
-            .ThrowAsJavaScriptException();
-    }
-
-    lot::pin_size_t pin = static_cast<int>( info[0].As<Napi::Number>() );
-
-    try
-    {
-        std::string retval
-            = status_num_to_str[static_cast<int>( lot::digital_read( pin ) )];
-        return Napi::String::New( env, retval );
-    }
-    catch( const std::exception &e )
-    {
-        Napi::TypeError::New( env, e.what() ).ThrowAsJavaScriptException();
-        return Napi::String( env, nullptr );
-    }
-}
-
-void lotgpio::analog_write( const Napi::CallbackInfo &info )
-{
-    Napi::Env env = info.Env();
-
-    if( info.Length() < 2 || !info[0].IsNumber() || !info[1].IsNumber() )
-    {
-        Napi::TypeError::New(
-            env, "Arguments must be (pin, value) such as (13, value)." )
-            .ThrowAsJavaScriptException();
-    }
-
-    lot::pin_size_t pin   = static_cast<int>( info[0].As<Napi::Number>() );
-    uint32_t        value = info[1].As<Napi::Number>();
-
-    try
-    {
-        lot::analog_write( pin, value );
-    }
-    catch( const std::exception &e )
-    {
-        Napi::TypeError::New( env, e.what() ).ThrowAsJavaScriptException();
-    }
-}
-
-Napi::Number lotgpio::analog_read( const Napi::CallbackInfo &info )
-{
-    Napi::Env env = info.Env();
-
-    if( info.Length() < 1 || !info[0].IsNumber() )
-    {
-        Napi::TypeError::New( env, "Arguments must be (pin) such as (13)." )
-            .ThrowAsJavaScriptException();
-    }
-
-    lot::pin_size_t pin = static_cast<int>( info[0].As<Napi::Number>() );
-
-    try
-    {
-        return Napi::Number::New( env, lot::analog_read( pin ) );
-    }
-    catch( const std::exception &e )
-    {
-        Napi::TypeError::New( env, e.what() ).ThrowAsJavaScriptException();
-        return Napi::Number::New( env, 0 );
-    }
+    return Napi::Number::New( env, -1 );
 }

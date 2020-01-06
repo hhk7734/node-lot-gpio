@@ -24,12 +24,11 @@
 #include <napi.h>
 
 #include "gpio.h"
-#include "Uart.h"
 
 Napi::Object init_all( Napi::Env env, Napi::Object exports )
 {
-    lotgpio::init( env, exports );
-    return lotgpio::Uart::init( env, exports );
+    nodelot::init_funcs( env, exports );
+    return nodelot::Gpio::init( env, exports );
 }
 
 NODE_API_MODULE( NODE_GYP_MODULE_NAME, init_all )
