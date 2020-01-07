@@ -31,19 +31,16 @@ npm install lot-gpio
 ```javascript
 const lot = require("lot-gpio");
 
-const LED_PIN = 7;
+let pin = 13;
 
-lot.set_pin_mode(LED_PIN, "OUT");
+if (process.argv.length > 2) {
+    pin = Number(process.argv[2]);
+}
 
-let status = "HIGH";
+const led = new lot.Gpio(pin);
+led.mode(lot.DOUT);
 
 setInterval(() => {
-    if (status == "HIGH") {
-        lot.digital_write(LED_PIN, "LOW");
-        status = "LOW";
-    } else {
-        lot.digital_write(LED_PIN, "HIGH");
-        status = "HIGH";
-    }
-}, 500);
+    led.toggle();
+}, 200);
 ```
