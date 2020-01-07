@@ -12,13 +12,13 @@
         "i2c",
         "serial"
     ],
-    "main": "lot-gpio.js",
+    "main": "index.js",
     "gypfile": true,
     "scripts": {
         "install": "node-gyp rebuild",
         "build": "node-gyp rebuild --verbose",
         "clean": "node-gyp clean",
-        "cf": "clang-format -style=file -i -verbose src/*"
+        "cf": "clang-format -style=file -i -verbose c_src/*"
     },
     "repository": {
         "type": "git",

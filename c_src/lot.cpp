@@ -1,6 +1,7 @@
 /*
  * MIT License
- * Copyright (c) 2019-2020 Hyeonki Hong <hhk7734@gmail.com>
+ * 
+ * Copyright (c) 2020 Hyeonki Hong <hhk7734@gmail.com>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,13 +24,13 @@
 
 #include <napi.h>
 
-#include "gpio.h"
-#include "Uart.h"
+#include "funcs_wrapper.h"
+#include "GpioWrapper.h"
 
 Napi::Object init_all( Napi::Env env, Napi::Object exports )
 {
-    lotgpio::init( env, exports );
-    return lotgpio::Uart::init( env, exports );
+    init_funcs( env, exports );
+    return GpioWrapper::init( env, exports );
 }
 
 NODE_API_MODULE( NODE_GYP_MODULE_NAME, init_all )

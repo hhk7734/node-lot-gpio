@@ -10,9 +10,9 @@
             "cflags_cc": ["-llot"],
             "defines": ["NAPI_DISABLE_CPP_EXCEPTIONS"],
             "sources": [
-                "src/main.cpp",
-                "src/gpio.cpp",
-                "src/Uart.cpp"
+                "c_src/lot.cpp",
+                "c_src/funcs_wrapper.cpp",
+                "c_src/GpioWrapper.cpp"
             ],
             "libraries": [
                 "/usr/lib/liblot.so"
