@@ -6,7 +6,7 @@ if (process.argv.length > 2) {
     pin = Number(process.argv[2]);
 }
 
-led = new lot.Gpio(pin);
+const led = new lot.Gpio(pin);
 led.mode(lot.DOUT);
 
 setInterval(() => {
