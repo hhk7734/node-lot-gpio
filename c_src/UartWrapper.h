@@ -22,17 +22,26 @@
  * SOFTWARE.
  */
 
+#pragma once
+
 #include <napi.h>
+#include <lot/Uart.h>
 
-#include "funcs_wrapper.h"
-#include "GpioWrapper.h"
-#include "UartWrapper.h"
-
-Napi::Object init_all( Napi::Env env, Napi::Object exports )
+class UartWrapper : public Napi::ObjectWrap<UartWrapper>
 {
-    init_funcs( env, exports );
-    GpioWrapper::init( env, exports );
-    return UartWrapper::init( env, exports );
-}
+public:
+    static Napi::Object init( Napi::Env env, Napi::Object exports );
 
-NODE_API_MODULE( NODE_GYP_MODULE_NAME, init_all )
+    UartWrapper( const Napi::CallbackInfo &info );
+
+private:
+    static Napi::FunctionReference m_constructor;
+    lot::Uart *                    m_Uart;
+
+    void        init( const Napi::CallbackInfo &info );
+    void        baudrate( const Napi::CallbackInfo &info );
+    void        mode( const Napi::CallbackInfo &info );
+    Napi::Value available( const Napi::CallbackInfo &info );
+    void        transmit( const Napi::CallbackInfo &info );
+    Napi::Value receive( const Napi::CallbackInfo &info );
+};
