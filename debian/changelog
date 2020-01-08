@@ -1,0 +1,38 @@
+node-lot-gpio (0.4.0) unstable; urgency=medium
+
+  * Add const variables
+  * Implement UartWrapper class
+
+ -- Hyeonki Hong <hhk7734@gmail.com>  Wed, 08 Jan 2020 17:16:07 +0900
+
+node-lot-gpio (0.3.0) unstable; urgency=medium
+
+  * Implement lot_time functions and lotdef
+  * Implement GpioWrapper class
+  * Remove unnecessary src due to Gpio class
+
+ -- Hyeonki Hong <hhk7734@gmail.com>  Tue, 07 Jan 2020 23:59:00 +0900
+
+node-lot-gpio (0.2.1) unstable; urgency=medium
+
+  * Update README.md
+
+ -- Hyeonki Hong <hhk7734@gmail.com>  Fri, 03 Jan 2020 06:12:00 +0900
+
+node-lot-gpio (0.2.0) unstable; urgency=medium
+
+  * Implement gpio functions
+  * Correct namespace
+  * Implement base Uart class structure
+
+ -- Hyeonki Hong <hhk7734@gmail.com>  Thu, 02 Jan 2020 22:16:00 +0900
+
+node-lot-gpio (0.1.0) unstable; urgency=medium
+
+  * Initial release.
+  * Add default wrapper format for gpio
+  * Implement set_pin_mode()
+  * Implement digital_write()
+  * Implement gpio functions
+
+ -- Hyeonki Hong <hhk7734@gmail.com>  Thu, 02 Jan 2020 18:10:04 +0900
