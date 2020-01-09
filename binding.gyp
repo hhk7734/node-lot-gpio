@@ -8,7 +8,7 @@
             "cflags_cc!": ["-fno-exceptions"],
             "cflags": ["-llot"],
             "cflags_cc": ["-llot"],
-            "defines": ["NAPI_DISABLE_CPP_EXCEPTIONS"],
+            "defines": [],
             "sources": [
                 "c_src/lot.cpp",
                 "c_src/funcs_wrapper.cpp",
