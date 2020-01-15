@@ -14,7 +14,8 @@
                 "c_src/funcs_wrapper.cpp",
                 "c_src/GpioWrapper.cpp",
                 "c_src/UartWrapper.cpp",
-                "c_src/I2cWrapper.cpp"
+                "c_src/I2cWrapper.cpp",
+                "c_src/SpiWrapper.cpp"
             ],
             "libraries": [
                 "/usr/lib/liblot.so"
