@@ -1,3 +1,9 @@
+node-lot-gpio (0.6.0) unstable; urgency=medium
+
+  * Implement SpiWrapper class
+
+ -- Hyeonki Hong <hhk7734@gmail.com>  Wed, 15 Jan 2020 23:33:50 +0900
+
 node-lot-gpio (0.5.0) unstable; urgency=medium
 
   * Implement I2cWrapper class
