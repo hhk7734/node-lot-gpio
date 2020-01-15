@@ -22,19 +22,26 @@
  * SOFTWARE.
  */
 
+#pragma once
+
 #include <napi.h>
+#include <lot/I2c.h>
 
-#include "funcs_wrapper.h"
-#include "GpioWrapper.h"
-#include "UartWrapper.h"
-#include "I2cWrapper.h"
-
-Napi::Object init_all( Napi::Env env, Napi::Object exports )
+class I2cWrapper : public Napi::ObjectWrap<I2cWrapper>
 {
-    init_funcs( env, exports );
-    GpioWrapper::init( env, exports );
-    UartWrapper::init( env, exports );
-    return I2cWrapper::init( env, exports );
-}
+public:
+    static Napi::Object init( Napi::Env env, Napi::Object exports );
 
-NODE_API_MODULE( NODE_GYP_MODULE_NAME, init_all )
+    I2cWrapper( const Napi::CallbackInfo &info );
+
+private:
+    static Napi::FunctionReference m_constructor;
+    lot::I2c *                     m_I2c;
+
+    void        init( const Napi::CallbackInfo &info );
+    void        clock( const Napi::CallbackInfo &info );
+    void        transmit( const Napi::CallbackInfo &info );
+    Napi::Value receive( const Napi::CallbackInfo &info );
+    void        write_reg( const Napi::CallbackInfo &info );
+    Napi::Value read_reg( const Napi::CallbackInfo &info );
+};
