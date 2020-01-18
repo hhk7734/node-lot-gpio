@@ -36,7 +36,6 @@ Napi::Object I2cWrapper::init( Napi::Env env, Napi::Object exports )
         env,
         "I2c",
         {
-            InstanceMethod( "init", &I2cWrapper::init ),
             InstanceMethod( "clock", &I2cWrapper::clock ),
             InstanceMethod( "transmit", &I2cWrapper::transmit ),
             InstanceMethod( "receive", &I2cWrapper::receive ),
@@ -89,38 +88,6 @@ I2cWrapper::I2cWrapper( const Napi::CallbackInfo &info )
         {
             Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
         }
-    }
-}
-
-void I2cWrapper::init( const Napi::CallbackInfo &info )
-{
-    Napi::Env         env = info.Env();
-    Napi::HandleScope scope( env );
-
-    uint32_t i2c_clock;
-
-    if( info.Length() == 0 )
-    {
-        i2c_clock = 400000;
-    }
-    else
-    {
-        if( !info[0].IsNumber() )
-        {
-            Napi::TypeError::New( env,
-                                  "Arguments should be (i2c_clock = 400000)." )
-                .ThrowAsJavaScriptException();
-        }
-        i2c_clock = info[0].As<Napi::Number>();
-    }
-
-    try
-    {
-        m_I2c->init( i2c_clock );
-    }
-    catch( const std::exception &e )
-    {
-        Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
     }
 }
 
@@ -183,35 +150,23 @@ Napi::Value I2cWrapper::receive( const Napi::CallbackInfo &info )
     Napi::Env         env = info.Env();
     Napi::HandleScope scope( env );
 
-    int size = 1;
-
-    if( info.Length() < 1 || !info[0].IsNumber() )
+    if( info.Length() < 2 || !info[0].IsNumber() || !info[1].IsNumber() )
     {
-        Napi::TypeError::New( env,
-                              "Arguments must be (slave_address, size = 1)." )
+        Napi::TypeError::New( env, "Arguments must be (slave_address, size)." )
             .ThrowAsJavaScriptException();
     }
 
-    if( info.Length() > 1 )
-    {
-        if( !info[1].IsNumber() )
-        {
-            Napi::TypeError::New(
-                env, "Arguments must be (slave_address, size = 1)." )
-                .ThrowAsJavaScriptException();
-        }
-        size = info[1].As<Napi::Number>();
-    }
-
     int slave_address = info[0].As<Napi::Number>();
-
+    int size          = info[1].As<Napi::Number>();
 
     if( size > 0 )
     {
         try
         {
             uint8_t *buf = new uint8_t[size];
+
             m_I2c->receive( static_cast<uint8_t>( slave_address ), buf, size );
+
             Napi::Buffer<uint8_t> buffer
                 = Napi::Buffer<uint8_t>::Copy( env, buf, size );
             delete buf;
@@ -222,7 +177,6 @@ Napi::Value I2cWrapper::receive( const Napi::CallbackInfo &info )
             Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
         }
     }
-
     return Napi::Buffer<uint8_t>::New( env, 0 );
 }
 
@@ -265,41 +219,29 @@ Napi::Value I2cWrapper::read_reg( const Napi::CallbackInfo &info )
     Napi::Env         env = info.Env();
     Napi::HandleScope scope( env );
 
-    int size = 1;
-
-    if( info.Length() < 2 || !info[0].IsNumber() || !info[1].IsNumber() )
+    if( info.Length() < 3 || !info[0].IsNumber() || !info[1].IsNumber()
+        || !info[2].IsNumber() )
     {
         Napi::TypeError::New(
-            env,
-            "Arguments must be (slave_address, register_address, size = 1)." )
+            env, "Arguments must be (slave_address, register_address, size)." )
             .ThrowAsJavaScriptException();
-    }
-
-    if( info.Length() > 2 )
-    {
-        if( !info[2].IsNumber() )
-        {
-            Napi::TypeError::New( env,
-                                  "Arguments must be (slave_address, "
-                                  "register_address, size = 1)." )
-                .ThrowAsJavaScriptException();
-        }
-        size = info[2].As<Napi::Number>();
     }
 
     int slave_address    = info[0].As<Napi::Number>();
     int register_address = info[1].As<Napi::Number>();
-
+    int size             = info[2].As<Napi::Number>();
 
     if( size > 0 )
     {
         try
         {
             uint8_t *buf = new uint8_t[size];
+
             m_I2c->read_reg( static_cast<uint8_t>( slave_address ),
                              static_cast<uint8_t>( register_address ),
                              buf,
                              size );
+
             Napi::Buffer<uint8_t> buffer
                 = Napi::Buffer<uint8_t>::Copy( env, buf, size );
             delete buf;
@@ -310,6 +252,5 @@ Napi::Value I2cWrapper::read_reg( const Napi::CallbackInfo &info )
             Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
         }
     }
-
     return Napi::Buffer<uint8_t>::New( env, 0 );
 }

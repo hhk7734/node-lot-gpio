@@ -38,7 +38,6 @@ private:
     static Napi::FunctionReference m_constructor;
     lot::Spi *                     m_Spi;
 
-    void        init( const Napi::CallbackInfo &info );
     void        clock( const Napi::CallbackInfo &info );
     void        mode( const Napi::CallbackInfo &info );
     void        bit_order( const Napi::CallbackInfo &info );

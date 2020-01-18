@@ -36,7 +36,6 @@ Napi::Object SpiWrapper::init( Napi::Env env, Napi::Object exports )
         env,
         "Spi",
         {
-            InstanceMethod( "init", &SpiWrapper::init ),
             InstanceMethod( "clock", &SpiWrapper::clock ),
             InstanceMethod( "mode", &SpiWrapper::mode ),
             InstanceMethod( "bit_order", &SpiWrapper::bit_order ),
@@ -92,77 +91,6 @@ SpiWrapper::SpiWrapper( const Napi::CallbackInfo &info )
         {
             Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
         }
-    }
-}
-
-void SpiWrapper::init( const Napi::CallbackInfo &info )
-{
-    Napi::Env         env = info.Env();
-    Napi::HandleScope scope( env );
-
-    uint32_t spi_clock     = 1000000;
-    int      spi_mode      = static_cast<int>( lot::MODE0 );
-    int      spi_bit_order = static_cast<int>( lot::MSB_FIRST );
-
-    bool is_error = false;
-
-    switch( info.Length() )
-    {
-        default:
-            if( info[2].IsNumber() )
-            {
-                spi_bit_order = info[2].As<Napi::Number>();
-            }
-            else
-            {
-                is_error = true;
-                break;
-            }
-            [[fallthrough]];
-        case 2:
-            if( info[1].IsNumber() )
-            {
-                spi_mode = info[1].As<Napi::Number>();
-            }
-            else
-            {
-                is_error = true;
-                break;
-            }
-            [[fallthrough]];
-        case 1:
-            if( info[0].IsNumber() )
-            {
-                spi_clock = info[0].As<Napi::Number>();
-            }
-            else
-            {
-                is_error = true;
-                break;
-            }
-            [[fallthrough]];
-        case 0:
-            break;
-    }
-
-    if( is_error )
-    {
-        Napi::TypeError::New(
-            env,
-            "Arguments should be (spi_clock = 1000000, spi_mode = lot.MODE0, "
-            "spi_bit_order = lot.MSB_FIRST)." )
-            .ThrowAsJavaScriptException();
-    }
-
-    try
-    {
-        m_Spi->init( spi_clock,
-                     static_cast<lot::spi_mode_t>( spi_mode ),
-                     static_cast<lot::bit_order_t>( spi_bit_order ) );
-    }
-    catch( const std::exception &e )
-    {
-        Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
     }
 }
 
@@ -243,40 +171,45 @@ Napi::Value SpiWrapper::transceive( const Napi::CallbackInfo &info )
     Napi::Env         env = info.Env();
     Napi::HandleScope scope( env );
 
-    if( ( info.Length() < 1 || !info[0].IsBuffer() )
-        && ( info.Length() < 2 || !info[0].IsNumber() || !info[1].IsBuffer() ) )
+    Napi::Buffer<uint8_t> tx_buffer;
+    int                   cs_pin = -1;
+
+    bool is_error = false;
+
+    switch( info.Length() )
+    {
+        default:
+            if( info[1].IsNumber() )
+            {
+                cs_pin = info[1].As<Napi::Number>();
+            }
+            else
+            {
+                is_error = true;
+                break;
+            }
+            [[fallthrough]];
+        case 1:
+            if( info[0].IsBuffer() )
+            {
+                tx_buffer = info[1].As<Napi::Buffer<uint8_t>>();
+            }
+            else
+            {
+                is_error = true;
+            }
+            break;
+        case 0:
+            is_error = true;
+            break;
+    }
+
+    if( is_error )
     {
         Napi::TypeError::New(
-            env, "Arguments must be (buffer) or (cs_pin, buffer)." )
+            env, "Arguments must be (buffer) or (buffer, cs_pin)." )
             .ThrowAsJavaScriptException();
     }
-
-    if( info[0].IsBuffer() )
-    {
-        Napi::Buffer<uint8_t> tx_buffer = info[0].As<Napi::Buffer<uint8_t>>();
-
-        int size = tx_buffer.Length();
-        if( size > 0 )
-        {
-            try
-            {
-                uint8_t *buf = new uint8_t[size];
-                m_Spi->transceive( tx_buffer.Data(), buf, size );
-                Napi::Buffer<uint8_t> rx_buffer
-                    = Napi::Buffer<uint8_t>::Copy( env, buf, size );
-                delete buf;
-                return rx_buffer;
-            }
-            catch( const std::exception &e )
-            {
-                Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
-            }
-        }
-        return Napi::Buffer<uint8_t>::New( env, 0 );
-    }
-
-    int                   cs_pin    = info[0].As<Napi::Number>();
-    Napi::Buffer<uint8_t> tx_buffer = info[1].As<Napi::Buffer<uint8_t>>();
 
     int size = tx_buffer.Length();
     if( size > 0 )
@@ -284,7 +217,16 @@ Napi::Value SpiWrapper::transceive( const Napi::CallbackInfo &info )
         try
         {
             uint8_t *buf = new uint8_t[size];
-            m_Spi->transceive( cs_pin, tx_buffer.Data(), buf, size );
+
+            if( cs_pin < 0 )
+            {
+                m_Spi->transceive( tx_buffer.Data(), buf, size );
+            }
+            else
+            {
+                m_Spi->transceive( tx_buffer.Data(), buf, size, cs_pin );
+            }
+
             Napi::Buffer<uint8_t> rx_buffer
                 = Napi::Buffer<uint8_t>::Copy( env, buf, size );
             delete buf;
@@ -303,59 +245,72 @@ void SpiWrapper::write_reg( const Napi::CallbackInfo &info )
     Napi::Env         env = info.Env();
     Napi::HandleScope scope( env );
 
-    if( ( info.Length() < 2 || !info[0].IsNumber() || !info[1].IsBuffer() )
-        && ( info.Length() < 3 || !info[0].IsNumber() || !info[1].IsNumber()
-             || !info[2].IsBuffer() ) )
+    int                   register_address = -1;
+    Napi::Buffer<uint8_t> buffer;
+    int                   cs_pin = -1;
+
+    bool is_error = false;
+
+    switch( info.Length() )
+    {
+        default:
+            if( info[2].IsNumber() )
+            {
+                cs_pin = info[2].As<Napi::Number>();
+            }
+            else
+            {
+                is_error = true;
+                break;
+            }
+            [[fallthrough]];
+        case 2:
+            if( !info[0].IsNumber() || !info[1].IsBuffer() )
+            {
+                is_error = true;
+            }
+            else
+            {
+                register_address = info[0].As<Napi::Number>();
+                buffer           = info[1].As<Napi::Buffer<uint8_t>>();
+            }
+            break;
+        case 0 ... 1:
+            is_error = true;
+            break;
+    }
+
+    if( is_error )
     {
         Napi::TypeError::New( env,
                               "Arguments must be (register_address, buffer) or "
-                              "(cs_pin, register_address, buffer)." )
+                              "(register_address, buffer, cs_pin)." )
             .ThrowAsJavaScriptException();
     }
-
-    if( info[1].IsBuffer() )
-    {
-        int                   register_address = info[0].As<Napi::Number>();
-        Napi::Buffer<uint8_t> buffer = info[1].As<Napi::Buffer<uint8_t>>();
-
-        if( buffer.Length() > 0 )
-        {
-            try
-            {
-                m_Spi->write_reg( static_cast<uint8_t>( register_address ),
-                                  buffer.Data(),
-                                  buffer.Length() );
-                return;
-            }
-            catch( const std::exception &e )
-            {
-                Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
-            }
-        }
-        return;
-    }
-
-
-    int                   cs_pin           = info[0].As<Napi::Number>();
-    int                   register_address = info[1].As<Napi::Number>();
-    Napi::Buffer<uint8_t> buffer = info[2].As<Napi::Buffer<uint8_t>>();
 
     if( buffer.Length() > 0 )
     {
         try
         {
-            m_Spi->write_reg( cs_pin,
-                              static_cast<uint8_t>( register_address ),
-                              buffer.Data(),
-                              buffer.Length() );
-            return;
+            if( cs_pin < 0 )
+            {
+                m_Spi->write_reg( static_cast<uint8_t>( register_address ),
+                                  buffer.Data(),
+                                  buffer.Length() );
+            }
+            else
+            {
+                m_Spi->write_reg( static_cast<uint8_t>( register_address ),
+                                  buffer.Data(),
+                                  buffer.Length(),
+                                  cs_pin );
+            }
         }
         catch( const std::exception &e )
         {
             Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
         }
     }
-    return;
 }
 
 Napi::Value SpiWrapper::read_reg( const Napi::CallbackInfo &info )
@@ -363,52 +318,68 @@ Napi::Value SpiWrapper::read_reg( const Napi::CallbackInfo &info )
     Napi::Env         env = info.Env();
     Napi::HandleScope scope( env );
 
-    if( ( info.Length() < 2 || !info[0].IsNumber() || !info[1].IsNumber() )
-        && ( info.Length() < 3 || !info[0].IsNumber() || !info[1].IsNumber()
-             || !info[2].IsNumber() ) )
+    int register_address = -1;
+    int size             = -1;
+    int cs_pin           = -1;
+
+    bool is_error = false;
+
+    switch( info.Length() )
+    {
+        default:
+            if( info[2].IsNumber() )
+            {
+                cs_pin = info[2].As<Napi::Number>();
+            }
+            else
+            {
+                is_error = true;
+                break;
+            }
+            [[fallthrough]];
+        case 2:
+            if( !info[0].IsNumber() || !info[1].IsNumber() )
+            {
+                is_error = true;
+            }
+            else
+            {
+                register_address = info[0].As<Napi::Number>();
+                size             = info[1].As<Napi::Number>();
+            }
+            break;
+        case 0 ... 1:
+            is_error = true;
+            break;
+    }
+
+    if( is_error )
     {
         Napi::TypeError::New( env,
                               "Arguments must be (register_address, size) or "
-                              "(cs_pin, register_address, size)." )
+                              "(register_address, size, cs_pin)." )
             .ThrowAsJavaScriptException();
     }
-
-    if( info.Length() == 2 )
-    {
-        int register_address = info[0].As<Napi::Number>();
-        int size             = info[1].As<Napi::Number>();
-
-        if( size > 0 )
-        {
-            try
-            {
-                uint8_t *buf = new uint8_t[size];
-                m_Spi->read_reg(
-                    static_cast<uint8_t>( register_address ), buf, size );
-                Napi::Buffer<uint8_t> buffer
-                    = Napi::Buffer<uint8_t>::Copy( env, buf, size );
-                delete buf;
-                return buffer;
-            }
-            catch( const std::exception &e )
-            {
-                Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
-            }
-        }
-        return Napi::Buffer<uint8_t>::New( env, 0 );
-    }
-
-    int cs_pin           = info[0].As<Napi::Number>();
-    int register_address = info[1].As<Napi::Number>();
-    int size             = info[2].As<Napi::Number>();
 
     if( size > 0 )
     {
         try
         {
             uint8_t *buf = new uint8_t[size];
-            m_Spi->read_reg(
-                cs_pin, static_cast<uint8_t>( register_address ), buf, size );
+
+            if( cs_pin < 0 )
+            {
+                m_Spi->read_reg(
+                    static_cast<uint8_t>( register_address ), buf, size );
+            }
+            else
+            {
+                m_Spi->read_reg( static_cast<uint8_t>( register_address ),
+                                 buf,
+                                 size,
+                                 cs_pin );
+            }
+
             Napi::Buffer<uint8_t> buffer
                 = Napi::Buffer<uint8_t>::Copy( env, buf, size );
             delete buf;

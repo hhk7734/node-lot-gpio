@@ -38,7 +38,6 @@ private:
     static Napi::FunctionReference m_constructor;
     lot::I2c *                     m_I2c;
 
-    void        init( const Napi::CallbackInfo &info );
     void        clock( const Napi::CallbackInfo &info );
     void        transmit( const Napi::CallbackInfo &info );
     Napi::Value receive( const Napi::CallbackInfo &info );

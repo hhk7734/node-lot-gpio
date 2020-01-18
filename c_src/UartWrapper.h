@@ -38,7 +38,6 @@ private:
     static Napi::FunctionReference m_constructor;
     lot::Uart *                    m_Uart;
 
-    void        init( const Napi::CallbackInfo &info );
     void        baudrate( const Napi::CallbackInfo &info );
     void        mode( const Napi::CallbackInfo &info );
     Napi::Value available( const Napi::CallbackInfo &info );

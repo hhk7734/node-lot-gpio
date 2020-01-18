@@ -37,7 +37,6 @@ Napi::Object UartWrapper::init( Napi::Env env, Napi::Object exports )
         env,
         "Uart",
         {
-            InstanceMethod( "init", &UartWrapper::init ),
             InstanceMethod( "baudrate", &UartWrapper::baudrate ),
             InstanceMethod( "mode", &UartWrapper::mode ),
             InstanceMethod( "available", &UartWrapper::available ),
@@ -90,54 +89,6 @@ UartWrapper::UartWrapper( const Napi::CallbackInfo &info )
         {
             Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
         }
-    }
-}
-
-void UartWrapper::init( const Napi::CallbackInfo &info )
-{
-    Napi::Env         env = info.Env();
-    Napi::HandleScope scope( env );
-
-    uint32_t baud_rate;
-    int      mode;
-
-    switch( info.Length() )
-    {
-        case 0:
-            baud_rate = 115200;
-            mode      = static_cast<int>( lot::U8N1 );
-            break;
-        case 1:
-            if( !info[0].IsNumber() )
-            {
-                Napi::TypeError::New( env,
-                                      "Arguments should be (baud_rate = "
-                                      "115200, mode = lot.U8N1)." )
-                    .ThrowAsJavaScriptException();
-            }
-            baud_rate = info[0].As<Napi::Number>();
-            mode      = static_cast<int>( lot::U8N1 );
-            break;
-        default:
-            if( !info[0].IsNumber() || !info[1].IsNumber() )
-            {
-                Napi::TypeError::New( env,
-                                      "Arguments should be (baud_rate = "
-                                      "115200, mode = lot.U8N1)." )
-                    .ThrowAsJavaScriptException();
-            }
-            baud_rate = info[0].As<Napi::Number>();
-            mode      = info[1].As<Napi::Number>();
-            break;
-    }
-
-    try
-    {
-        m_Uart->init( baud_rate, static_cast<lot::uart_mode_t>( mode ) );
-    }
-    catch( const std::exception &e )
-    {
-        Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
     }
 }
 
@@ -243,7 +194,9 @@ Napi::Value UartWrapper::receive( const Napi::CallbackInfo &info )
         if( length > 0 )
         {
             uint8_t *buf = new uint8_t[length];
+
             m_Uart->receive( buf, length );
+
             Napi::Buffer<uint8_t> buffer
                 = Napi::Buffer<uint8_t>::Copy( env, buf, length );
             delete buf;
@@ -254,6 +207,5 @@ Napi::Value UartWrapper::receive( const Napi::CallbackInfo &info )
     {
         Napi::Error::New( env, e.what() ).ThrowAsJavaScriptException();
     }
-
     return Napi::Buffer<uint8_t>::New( env, 0 );
 }
