@@ -3,8 +3,6 @@ const reg = require("./mpu9250_reg");
 
 const i2c = new lot.I2c("/dev/i2c-2");
 
-i2c.init();
-
 i2c.write_reg(
     reg.MPU9250_ADDRESS,
     reg.MPU9250_PWR_MGMT_1,
