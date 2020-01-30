@@ -132,7 +132,7 @@ void UartWrapper::mode( const Napi::CallbackInfo &info )
 
     try
     {
-        m_Uart->mode( static_cast<lot::uart_mode_t>( mode ) );
+        m_Uart->mode( static_cast<lot::UartMode>( mode ) );
     }
     catch( const std::exception &e )
     {

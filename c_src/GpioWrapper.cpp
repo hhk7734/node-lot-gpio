@@ -105,7 +105,7 @@ Napi::Value GpioWrapper::mode( const Napi::CallbackInfo &info )
 
     try
     {
-        m_Gpio->mode( static_cast<lot::pin_mode_t>( mode ) );
+        m_Gpio->mode( static_cast<lot::GpioMode>( mode ) );
     }
     catch( const std::exception &e )
     {
@@ -144,7 +144,7 @@ Napi::Value GpioWrapper::pull_up_down( const Napi::CallbackInfo &info )
 
     try
     {
-        m_Gpio->pull_up_down( static_cast<lot::pud_mode_t>( pud ) );
+        m_Gpio->pull_up_down( static_cast<lot::PUDMode>( pud ) );
     }
     catch( const std::exception &e )
     {

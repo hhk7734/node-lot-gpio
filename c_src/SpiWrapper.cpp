@@ -134,7 +134,7 @@ void SpiWrapper::mode( const Napi::CallbackInfo &info )
 
     try
     {
-        m_Spi->mode( static_cast<lot::spi_mode_t>( spi_mode ) );
+        m_Spi->mode( static_cast<lot::SpiMode>( spi_mode ) );
     }
     catch( const std::exception &e )
     {
@@ -158,7 +158,7 @@ void SpiWrapper::bit_order( const Napi::CallbackInfo &info )
 
     try
     {
-        m_Spi->bit_order( static_cast<lot::bit_order_t>( spi_bit_order ) );
+        m_Spi->bit_order( static_cast<lot::BitOrder>( spi_bit_order ) );
     }
     catch( const std::exception &e )
     {
